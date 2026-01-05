@@ -1,13 +1,14 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Client } from "oceanic.js";
+import type { Command } from "../types/command";
 
 const basePath = dirname(fileURLToPath(import.meta.url));
 // Commands are in the same dist folder as the handler
-const cmdPath = resolve(basePath, "commands");
+const cmdPath = resolve(basePath, "../commands");
 
 // Store loaded commands
-const commands = new Map<string, any>();
+const commands = new Map<string, Command>();
 
 /**
  * Load a single command file

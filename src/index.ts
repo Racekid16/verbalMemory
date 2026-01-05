@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { Client, type CommandInteraction } from "oceanic.js";
-import { loadAllCommands, getCommand } from "./handler.js";
+import { loadAllCommands, getCommand } from "./handlers/commandHandler.ts";
 
 if (!process.env.TOKEN) {
     console.error("No token provided!");
