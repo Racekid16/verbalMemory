@@ -15,11 +15,13 @@ npm install
 Next, create ``.env`` in the top-level directory whose contents are:
 
 ```
-DISCORD_TOKEN=your_bot_token_here
+TOKEN=your_bot_token_here
 ```
 
 ## Run
 
-In development, run with:
+Run with:
 
-TODO
+```
+npm run build && npm start
+```
