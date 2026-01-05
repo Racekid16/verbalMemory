@@ -10,13 +10,13 @@ export class WordManager {
         this.words = readFileSync(wordsFilePath, "utf-8").split("\n");
     }
     
-    chooseNextWord(seen: Set<string>, previousWord: string | null): { word: string; isNew: boolean } {
+    chooseNextWord(seen: Set<string>, currentWord: string | null): string {
         const seenCount = seen.size;
         
         // First word is always new
         if (seenCount === 0) {
             const word = this.getRandomUnseen(seen);
-            return { word, isNew: true };
+            return word;
         }
         
         const pSeen = Math.min(MAX_P, seenCount / SCALE);
@@ -33,11 +33,11 @@ export class WordManager {
         }
         
         // Ensure we don't show the same word twice in a row
-        if (word === previousWord) {
-            return this.chooseNextWord(seen, previousWord);
+        if (word === currentWord) {
+            return this.chooseNextWord(seen, currentWord);
         }
         
-        return { word, isNew };
+        return word;
     }
     
     private getRandomUnseen(seen: Set<string>): string {

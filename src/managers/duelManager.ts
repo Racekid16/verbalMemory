@@ -1,18 +1,42 @@
 import type { Duel } from "../types/duel.ts";
 
-class DuelManager {
+export class DuelManager {
     private duels = new Map<string, Duel>(); // key = messageId
 
-    create(duel: Duel) {
+    start(
+        challengerId: string, opponentId: string,
+        channelId: string, messageId: string,
+        challengerMessageURL: string, opponentMessageURL: string
+    ) {
+        const duel: Duel = {
+            challenger: {
+                id: challengerId,
+                score: null,
+                messageUrl: challengerMessageURL,
+            },
+            opponent: {
+                id: opponentId,
+                score: null,
+                messageUrl: opponentMessageURL,
+            },
+            channelId: channelId,
+            messageId: messageId,
+        };
         this.duels.set(duel.messageId, duel);
     }
 
-    get(messageId: string) {
-        return this.duels.get(messageId);
+    get(userId: string): Duel | null {
+        for (const duel of this.duels.values()) {
+            if (duel.challenger.id === userId || duel.opponent.id === userId) {
+                return duel;
+            }
+        }
+        return null;
     }
 
-    finishUser(messageId: string, userId: string, score: number): Duel | null {
-        const duel = this.duels.get(messageId);
+    endUser(userId: string, score: number): Duel | null {
+        const duel = this.get(userId);
+        // test was not a duel
         if (!duel) return null;
 
         if (duel.challenger.id === userId) {
@@ -21,14 +45,13 @@ class DuelManager {
             duel.opponent.score = score;
         }
 
-        if (
-            duel.challenger.score !== null &&
-            duel.opponent.score !== null
-        ) {
-            this.duels.delete(messageId);
+        // Both users finished - clean up and return the completed duel
+        if (duel.challenger.score !== null && duel.opponent.score !== null) {
+            this.duels.delete(duel.messageId);
             return duel;
         }
 
+        // Only one user finished so far
         return null;
     }
 }

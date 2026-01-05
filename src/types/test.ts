@@ -1,6 +1,6 @@
 export interface Test {
     seen: Set<string>;
-    previousWord: string | null;
+    currentWord: string | null;
     score: number;
     lives: number;
 };

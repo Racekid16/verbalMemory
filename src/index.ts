@@ -2,7 +2,7 @@ import "dotenv/config";
 import { readFileSync } from "node:fs";
 import { Client, type CommandInteraction } from "oceanic.js";
 import { loadAllCommands, getCommand } from "./handlers/registerCommands.ts";
-import handleVerbalButton from "./handlers/handleVerbalButton.ts";
+import handleTestButton from "./handlers/handleTestButton.ts";
 import handleDuelButton from "./handlers/handleDuelButton.ts";
 
 if (!process.env.TOKEN) {
@@ -34,8 +34,8 @@ client.on("interactionCreate", async (interaction) => {
         if (interaction.isComponentInteraction()) {
             const id = interaction.data.customID;
 
-            if (id.startsWith("verbal_")) {
-                await handleVerbalButton(interaction);
+            if (id.startsWith("test_")) {
+                await handleTestButton(interaction);
                 return;
             }
 

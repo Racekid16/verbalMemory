@@ -1,12 +1,12 @@
 import { type CommandInteraction, type User } from "oceanic.js";
-import { gameManager } from "../managers/gameManager.ts";
+import { testManager } from "../managers/testManager.ts";
 import { wordManager } from "../managers/wordManager.ts";
-import { verbalEmbed } from "../components/verbalEmbed.ts";
-import { verbalButtons } from "../components/verbalButtons.ts";
-import { dualButtons } from "../components/duelButtons.ts";
+import { testEmbed } from "../components/testEmbed.ts";
+import { testButtons } from "../components/testButtons.ts";
+import { duelButtons } from "../components/duelButtons.ts";
 
 export default {
-    name: "verbal memory",
+    name: "verbal-memory",
     description: "Start a verbal memory test",
     slash: true,
     options: [
@@ -19,6 +19,14 @@ export default {
     ],
 
     async execute(interaction: CommandInteraction) {
+        if (testManager.get(interaction.user.id)) {
+            await interaction.createMessage({
+                content: "You already have an ongoing test!",
+                flags: 64,
+            });
+            return;
+        }
+
         const opponent = interaction.data.options?.getUser("user");
 
         if (!opponent) {
@@ -34,19 +42,28 @@ export default {
             return;
         }
 
+        if (testManager.get(opponent.id)) {
+            await interaction.createMessage({
+                content: "The challenged user already has an ongoing test!",
+                flags: 64,
+            });
+            return;
+        }
+
         await startDuel(interaction, interaction.user, opponent);
     },
 };
 
 async function startSolo(interaction: CommandInteraction, user: User) {
-    gameManager.startTest(user.id);
+    testManager.start(user.id);
 
-    const test = gameManager.getTest(user.id)!;
-    const { word } = wordManager.chooseNextWord(test.seen, null);
+    const test = testManager.get(user.id)!;
+    const firstWord = wordManager.chooseNextWord(test.seen, null);
+    test.currentWord = firstWord;
 
     await interaction.reply({
-        embeds: [verbalEmbed(user, word, test)],
-        components: [verbalButtons],
+        embeds: [testEmbed(user, firstWord, test)],
+        components: [testButtons],
     });
 }
 
@@ -57,6 +74,23 @@ async function startDuel(
 ) {
     await interaction.reply({
         content: `${opponent.mention}, do you accept ${challenger.mention}'s challenge?`,
-        components: [dualButtons],
+        components: [duelButtons],
     });
+
+    // Set 1 minute timeout for acceptance
+    setTimeout(async () => {
+        try {
+            const message = await interaction.getOriginal();
+            
+            // Check if buttons are still present (not yet accepted/declined)
+            if (message.components && message.components.length > 0) {
+                await interaction.editOriginal({
+                    content: `${opponent.mention} ran away from the challenge 💀`,
+                    components: [],
+                });
+            }
+        } catch (err) {
+            console.error("Failed to expire duel challenge:", err);
+        }
+    }, 60000);
 }

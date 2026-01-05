@@ -8,7 +8,7 @@ const basePath = dirname(fileURLToPath(import.meta.url));
 const cmdPath = resolve(basePath, "../commands");
 
 // Store loaded commands
-const commands = new Map<string, Command>();
+const commands = new Map<string, Command>(); // key = command name
 
 /**
  * Load a single command file

@@ -1,7 +1,7 @@
 import type { EmbedOptions, User } from "oceanic.js";
 import type { Test } from "../types/test.ts";
 
-export function verbalEmbed(
+export function testEmbed(
     user: User,
     word: string,
     test: Test

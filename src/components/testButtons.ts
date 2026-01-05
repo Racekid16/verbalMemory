@@ -1,17 +1,17 @@
 import { ButtonStyles } from "oceanic.js";
 
-export const verbalButtons = {
-    type: 1,    // action row
+export const testButtons = {
+    type: 1,    // ACTION_ROW
     components: [
         {
-            type: 2,    // button
-            customID: "verbal_seen",
+            type: 2,    // BUTTON
+            customID: "test_seen",
             label: "Seen",
             style: ButtonStyles.PRIMARY,
         },
         {
-            type: 2,    // button
-            customID: "verbal_new",
+            type: 2,    // BUTTON
+            customID: "test_new",
             label: "New",
             style: ButtonStyles.SUCCESS,
         },
