@@ -3,7 +3,7 @@ import type { CommandInteraction } from "oceanic.js";
 export default {
     name: "ping",
     description: "Check the bot's latency",
-    slash: true, // Enable as a slash command
+    slash: true,
 
     async execute(interaction: CommandInteraction) {
         const start = Date.now();

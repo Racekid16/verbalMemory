@@ -1,6 +1,9 @@
 import "dotenv/config";
+import { readFileSync } from "node:fs";
 import { Client, type CommandInteraction } from "oceanic.js";
-import { loadAllCommands, getCommand } from "./handlers/commandHandler.ts";
+import { loadAllCommands, getCommand } from "./handlers/registerCommands.ts";
+import handleVerbalButton from "./handlers/handleVerbalButton.ts";
+import handleDuelButton from "./handlers/handleDuelButton.ts";
 
 if (!process.env.TOKEN) {
     console.error("No token provided!");
@@ -18,18 +21,38 @@ client.on("ready", async () => {
     await loadAllCommands(client);
 });
 
-// Handle slash command interactions
 client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isCommandInteraction()) return;
-
-    const command = getCommand(interaction.data.name);
-    if (!command) return;
-
     try {
-        await command.execute(interaction);
+        if (interaction.isCommandInteraction()) {
+            const command = getCommand(interaction.data.name);
+            if (!command) return;
+
+            await command.execute(interaction);
+            return;
+        }
+
+        if (interaction.isComponentInteraction()) {
+            const id = interaction.data.customID;
+
+            if (id.startsWith("verbal_")) {
+                await handleVerbalButton(interaction);
+                return;
+            }
+
+            if (id.startsWith("duel_")) {
+                await handleDuelButton(interaction);
+                return;
+            }
+        }
     } catch (err) {
-        console.error(`Error executing command ${interaction.data.name}:`, err);
-        await interaction.reply({ content: "An error occurred!", flags: 64 });
+        console.error("Interaction error:", err);
+
+        if (!interaction.acknowledged && interaction.isCommandInteraction()) {
+            await interaction.reply({
+                content: "An error occurred!",
+                flags: 64,
+            });
+        }
     }
 });
 

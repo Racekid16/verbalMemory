@@ -5,4 +5,4 @@ export interface Command {
     description?: string;
     slash?: boolean;
     execute(interaction: CommandInteraction): Promise<void>;
-}
+};
