@@ -3,13 +3,16 @@ import type { Test } from "../types/test.ts";
 export class TestManager {
     private tests: Map<string, Test> = new Map(); // key = userId
 
-    start(userId: string, initialLives = 3) {
-        this.tests.set(userId, {
+    start(userId: string, initialLives = 3): Test {
+        const test: Test = {
             seen: new Set(),
             currentWord: null,
             score: 0,
             lives: initialLives,
-        });
+        };
+
+        this.tests.set(userId, test);
+        return test;
     }
     
     get(userId: string): Test | null {

@@ -2,8 +2,9 @@ import type { ComponentInteraction } from "oceanic.js";
 import { duelManager } from "../managers/duelManager.ts";
 import { testManager } from "../managers/testManager.ts";
 import { wordManager } from "../managers/wordManager.ts";
-import { testEmbed } from "../components/testEmbed.ts";
-import { testButtons } from "../components/testButtons.ts";
+import { testEmbed } from "../components/embeds/testEmbed.ts";
+import { duelEmbed } from "../components/embeds/duelEmbed.ts";
+import { testButtons } from "../components/buttons/testButtons.ts";
 
 export default async function handleDuelButton(interaction: ComponentInteraction) {
     const buttonId = interaction.data.customID;
@@ -86,8 +87,8 @@ async function handleAccept(interaction: ComponentInteraction) {
         const challengerMessage = await interaction.client.rest.channels.createMessage(
             challengerThread.id,
             {
-                content: `<@${challengerId}>, your duel has started!`,
-                embeds: [testEmbed(challenger, challengerWord, challengerTest)],
+                content: `<@${challengerId}>`,
+                embeds: [testEmbed(challenger, challengerTest)],
                 components: [testButtons],
             }
         );
@@ -95,8 +96,8 @@ async function handleAccept(interaction: ComponentInteraction) {
         const opponentMessage = await interaction.client.rest.channels.createMessage(
             opponentThread.id,
             {
-                content: `<@${opponentId}>, your duel has started!`,
-                embeds: [testEmbed(opponent, opponentWord, opponentTest)],
+                content: `<@${opponentId}>`,
+                embeds: [testEmbed(opponent, opponentTest)],
                 components: [testButtons],
             }
         );
@@ -105,7 +106,7 @@ async function handleAccept(interaction: ComponentInteraction) {
         const challengerMessageURL = `https://discord.com/channels/${interaction.guildID || "@me"}/${challengerThread.id}/${challengerMessage.id}`;
         const opponentMessageURL = `https://discord.com/channels/${interaction.guildID || "@me"}/${opponentThread.id}/${opponentMessage.id}`;
 
-        duelManager.start(
+        const duel = duelManager.start(
             challengerId, opponentId,
             channelId, messageId,
             challengerMessageURL, opponentMessageURL
@@ -113,22 +114,8 @@ async function handleAccept(interaction: ComponentInteraction) {
 
         // Update original message
         await interaction.editParent({
-            embeds: [{
-                title: "Verbal Memory Duel - In Progress ⌛",
-                fields: [
-                    { 
-                        name: "Challenger", 
-                        value: `${challenger.username} - ${challengerMessageURL}`,
-                        inline: true 
-                    },
-                    { 
-                        name: "Opponent", 
-                        value: `${opponent.username} - ${opponentMessageURL}`,
-                        inline: true 
-                    },
-                ],
-                color: 0x0099FF,
-            }],
+            content: "",
+            embeds: [duelEmbed(duel)],
             components: [],
         });
 

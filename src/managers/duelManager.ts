@@ -7,7 +7,7 @@ export class DuelManager {
         challengerId: string, opponentId: string,
         channelId: string, messageId: string,
         challengerMessageURL: string, opponentMessageURL: string
-    ) {
+    ): Duel {
         const duel: Duel = {
             challenger: {
                 id: challengerId,
@@ -22,7 +22,9 @@ export class DuelManager {
             channelId: channelId,
             messageId: messageId,
         };
+
         this.duels.set(duel.messageId, duel);
+        return duel;
     }
 
     get(userId: string): Duel | null {
@@ -45,7 +47,7 @@ export class DuelManager {
             duel.opponent.score = score;
         }
 
-        // Both users finished - clean up and return the completed duel
+        // Both users finished - clean up and return the finished duel
         if (duel.challenger.score !== null && duel.opponent.score !== null) {
             this.duels.delete(duel.messageId);
             return duel;

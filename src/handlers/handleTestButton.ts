@@ -2,27 +2,31 @@ import type { ComponentInteraction } from "oceanic.js";
 import { testManager } from "../managers/testManager.ts";
 import { wordManager } from "../managers/wordManager.ts";
 import { duelManager } from "../managers/duelManager.ts";
-import { testEmbed } from "../components/testEmbed.ts";
-import { testButtons } from "../components/testButtons.ts";
+import { testEmbed } from "../components/embeds/testEmbed.ts";
+import { duelFinishedEmbed } from "../components/embeds/duelFinishedEmbed.ts";
+import { testFinishedEmbed } from "../components/embeds/testFinishedEmbed.ts";
+import { testButtons } from "../components/buttons/testButtons.ts";
 import type { Duel } from "../types/duel.ts";
 
 export default async function handleTestButton(interaction: ComponentInteraction) {
-    const userId = interaction.user.id;
+    // Verify the person clicking is the one who this test is for
+    // (comparing user IDs would be better, but oh well)
+    const embed = interaction.message.embeds[0];
+    if (embed?.author?.name !== interaction.user.username) {
+        await interaction.createMessage({
+            content: "You can only interact with your own test!",
+            flags: 64,
+        });
+        return;
+    }
+
+    const user = interaction.user;
+    const userId = user.id;
     const test = testManager.get(userId);
 
     if (!test) {
         await interaction.createMessage({
             content: "This test has expired or already ended!",
-            flags: 64,
-        });
-        return;
-    }
-    
-    // Verify the person clicking is the one who this test is for
-    const embed = interaction.message.embeds[0];
-    if (embed?.author?.name !== interaction.user.username) {
-        await interaction.createMessage({
-            content: "You can only interact with your own test!",
             flags: 64,
         });
         return;
@@ -44,28 +48,18 @@ export default async function handleTestButton(interaction: ComponentInteraction
 
     // Check if game is over
     if (test.lives <= 0) {
-        const finalScore = testManager.end(userId);
+        const score = testManager.end(userId);
         
         await interaction.editParent({
-            embeds: [{
-                title: "Verbal Memory Test - Game Over!",
-                author: {
-                    name: interaction.user.username,
-                    iconURL: interaction.user.avatarURL(),
-                },
-                fields: [
-                    { name: "Final Score", value: String(finalScore) }
-                ],
-                color: 0xFF0000,
-            }],
+            embeds: [testFinishedEmbed(user, String(score))],
             components: [],
         });
 
         // Check if this was part of a duel
-        const completedDuel = duelManager.endUser(userId, finalScore);
+        const finishedDuel = duelManager.endUser(userId, score);
         
-        if (completedDuel) {
-            await finalizeDuel(interaction, completedDuel);
+        if (finishedDuel) {
+            await finalizeDuel(interaction, finishedDuel);
         }
 
         return;
@@ -75,48 +69,15 @@ export default async function handleTestButton(interaction: ComponentInteraction
     test.currentWord = nextWord;
 
     await interaction.editParent({
-        embeds: [testEmbed(interaction.user, nextWord, test)],
+        embeds: [testEmbed(interaction.user, test)],
         components: [testButtons],
     });
 }
 
 async function finalizeDuel(interaction: ComponentInteraction, duel: Duel) {
     try {
-        const challengerScore = duel.challenger.score!;
-        const opponentScore = duel.opponent.score!;
-
-        let winner: string;
-        let color: number;
-
-        if (challengerScore > opponentScore) {
-            winner = `<@${duel.challenger.id}> wins!`;
-            color = 0x00FF00;
-        } else if (opponentScore > challengerScore) {
-            winner = `<@${duel.opponent.id}> wins!`;
-            color = 0x00FF00;
-        } else {
-            winner = "It's a tie!";
-            color = 0xFFFF00;
-        }
-
         await interaction.client.rest.channels.editMessage(duel.channelId, duel.messageId, {
-            embeds: [{
-                title: "Verbal Memory Duel - Complete!",
-                fields: [
-                    { 
-                        name: "Challenger", 
-                        value: `<@${duel.challenger.id}>: **${challengerScore}** points`,
-                        inline: true 
-                    },
-                    { 
-                        name: "Opponent", 
-                        value: `<@${duel.opponent.id}>: **${opponentScore}** points`,
-                        inline: true 
-                    },
-                    { name: "Winner", value: winner }
-                ],
-                color,
-            }],
+            embeds: [duelFinishedEmbed(duel)],
             components: [],
         });
 
@@ -124,13 +85,17 @@ async function finalizeDuel(interaction: ComponentInteraction, duel: Duel) {
         if (duel.challenger.messageUrl) {
             const threadId = extractThreadId(duel.challenger.messageUrl);
             if (threadId) {
-                await interaction.client.rest.channels.delete(threadId).catch(() => {});
+                await interaction.client.rest.channels.delete(threadId).catch((err) => {
+                    console.error("Failed to delete thread:", err);
+                });
             }
         }
         if (duel.opponent.messageUrl) {
             const threadId = extractThreadId(duel.opponent.messageUrl);
             if (threadId) {
-                await interaction.client.rest.channels.delete(threadId).catch(() => {});
+                await interaction.client.rest.channels.delete(threadId).catch((err) => {
+                    console.error("Failed to delete thread:", err);
+                });
             }
         }
     } catch (err) {

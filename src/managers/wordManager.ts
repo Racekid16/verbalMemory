@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 
-const MAX_P = 0.65;
-const SCALE = 20 / MAX_P;
+const MAX_P = 0.7;
+const SCALE = 15 / MAX_P;
 
 export class WordManager {
     private words: string[];
@@ -60,4 +60,4 @@ export class WordManager {
 }
 
 // singleton pattern
-export const wordManager = new WordManager("words.txt");
+export const wordManager = new WordManager("assets/words.txt");

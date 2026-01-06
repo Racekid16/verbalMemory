@@ -4,7 +4,12 @@ Wordlist taken from https://humanbenchmark.com/tests/verbal-memory.
 
 ## Setup
 
-First, create a Discord bot and obtain its token.
+First, create a Discord bot and obtain its token. It should have the following permissions:
+- Send Messages
+- Create Public Threads
+- Send Messages in Threads
+- Manage Threads
+
 
 Then, install npm packages with:
 
