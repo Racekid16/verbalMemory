@@ -1,17 +1,17 @@
 import type { EmbedOptions } from "oceanic.js";
-import type { Duel } from "../../types/duel.ts";
+import type { Duel } from "../../classes/duel.ts";
 
 export function duelFinishedEmbed(duel: Duel): EmbedOptions {
-    const challengerScore = duel.challenger.score!;
-    const opponentScore = duel.opponent.score!;
+    const challengerScore = duel.challenger.score;
+    const opponentScore = duel.opponent.score;
 
     let winnerText: string;
 
     if (challengerScore > opponentScore) {
-        winnerText =`<@${duel.challenger.id}>`;
+        winnerText =`<@${duel.challenger.user.id}>`;
     } else if (opponentScore > challengerScore) {
-        winnerText = `<@${duel.opponent.id}>`;
-    } else {
+        winnerText = `<@${duel.opponent.user.id}>`;
+    } else {    // challengerScore == opponentScore
         winnerText = "It's a tie!";
     }
 
@@ -20,12 +20,12 @@ export function duelFinishedEmbed(duel: Duel): EmbedOptions {
         fields: [
             { 
                 name: "Challenger", 
-                value: `<@${duel.challenger.id}> - ${challengerScore} points`,
+                value: `<@${duel.challenger.user.id}> - ${challengerScore} points`,
                 inline: true 
             },
             { 
                 name: "Opponent", 
-                value: `<@${duel.opponent.id}> - ${opponentScore} points`,
+                value: `<@${duel.opponent.user.id}> - ${opponentScore} points`,
                 inline: true 
             },
             { name: "Winner", value: winnerText }

@@ -1,12 +1,12 @@
-import type { EmbedOptions, User } from "oceanic.js";
-import type { Test } from "../../types/test.ts";
+import type { EmbedOptions } from "oceanic.js";
+import type { Test } from "../../classes/test.ts";
 
-export function testEmbed(user: User, test: Test): EmbedOptions {
+export function testEmbed(test: Test): EmbedOptions {
     return {
         title: "Verbal Memory Test - In Progress ⌛",
         author: {
-            name: user.username,
-            iconURL: user.avatarURL(),
+            name: test.user.username,
+            iconURL: test.user.avatarURL(),
         },
         fields: [
             { name: "Word", value: `**${test.currentWord}**` },

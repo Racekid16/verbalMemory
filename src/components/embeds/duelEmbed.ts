@@ -1,5 +1,5 @@
 import type { EmbedOptions } from "oceanic.js";
-import type { Duel } from "../../types/duel.ts";
+import type { Duel } from "../../classes/duel.ts";
 
 export function duelEmbed(duel: Duel): EmbedOptions {
     return {
@@ -7,12 +7,12 @@ export function duelEmbed(duel: Duel): EmbedOptions {
         fields: [
             { 
                 name: "Challenger", 
-                value: `<@${duel.challenger.id}> - ${duel.challenger.messageUrl}`,
+                value: `<@${duel.challenger.user.id}> - ${duel.challenger.messageURL}`,
                 inline: true 
             },
             { 
                 name: "Opponent", 
-                value: `<@${duel.opponent.id}> - ${duel.opponent.messageUrl}`,
+                value: `<@${duel.opponent.user.id}> - ${duel.opponent.messageURL}`,
                 inline: true 
             },
         ],

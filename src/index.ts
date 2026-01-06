@@ -1,7 +1,6 @@
 import "dotenv/config";
-import { readFileSync } from "node:fs";
-import { Client, type CommandInteraction } from "oceanic.js";
-import { loadAllCommands, getCommand } from "./handlers/registerCommands.ts";
+import { Client } from "oceanic.js";
+import { loadAllCommands, getCommand } from "./utils/registerCommands.ts";
 import handleTestButton from "./handlers/handleTestButton.ts";
 import handleDuelButton from "./handlers/handleDuelButton.ts";
 
@@ -32,14 +31,14 @@ client.on("interactionCreate", async (interaction) => {
         }
 
         if (interaction.isComponentInteraction()) {
-            const id = interaction.data.customID;
+            const scope = interaction.data.customID.split(":")[0];
 
-            if (id.startsWith("test_")) {
+            if (scope == "test") {
                 await handleTestButton(interaction);
                 return;
             }
 
-            if (id.startsWith("duel_")) {
+            if (scope == "duel") {
                 await handleDuelButton(interaction);
                 return;
             }
@@ -62,8 +61,8 @@ client.on("error", (err: string | Error) => {
 
 try {
     await client.connect();
-} catch (e) {
+} catch (err) {
     console.error("Failed to connect!");
-    console.error(e);
+    console.error(err);
     process.exit(1);
 }

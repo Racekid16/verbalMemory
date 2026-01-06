@@ -1,36 +1,16 @@
-import type { ComponentInteraction } from "oceanic.js";
-import { duelManager } from "../managers/duelManager.ts";
-import { testManager } from "../managers/testManager.ts";
-import { wordManager } from "../managers/wordManager.ts";
+import type { ComponentInteraction, TextableChannel } from "oceanic.js";
+import { duelManager } from "../classes/managers/duelManager.ts";
+import { testManager } from "../classes/managers/testManager.ts";
 import { testEmbed } from "../components/embeds/testEmbed.ts";
 import { duelEmbed } from "../components/embeds/duelEmbed.ts";
 import { testButtons } from "../components/buttons/testButtons.ts";
 
 export default async function handleDuelButton(interaction: ComponentInteraction) {
-    const buttonId = interaction.data.customID;
-    
-    if (buttonId === "duel_accept") {
-        await handleAccept(interaction);
-    } else if (buttonId === "duel_decline") {
-        await handleDecline(interaction);
-    }
-}
+    const [scope, action, challengerId, opponentId] = interaction.data.customID.split(":");
 
-async function handleAccept(interaction: ComponentInteraction) {
-    // Parse the original message to find challenger and opponent
-    const content = interaction.message.content;
-    const opponentMatch = content.match(/<@(\d+)>, do you accept/);
-    const challengerMatch = content.match(/accept <@(\d+)>'s challenge/);
-    
-    if (!opponentMatch || !challengerMatch) return;
-
-    const opponentId = opponentMatch[1];
-    const challengerId = challengerMatch[1];
-
-    // Verify the person clicking is the opponent
     if (interaction.user.id !== opponentId) {
         await interaction.createMessage({
-            content: "Only the challenged user can accept this duel!",
+            content: "You are not the challenged user!",
             flags: 64,
         });
         return;
@@ -43,108 +23,77 @@ async function handleAccept(interaction: ComponentInteraction) {
         });
         return;
     }
-
-    const channelId = interaction.channelID!;
-    const messageId = interaction.message.id!;
     
-    try {
-        const challenger = await interaction.client.rest.users.get(challengerId);
-        const opponent = interaction.user;
-
-        // Create threads
-        const challengerThread = await interaction.client.rest.channels.startThreadWithoutMessage(
-            channelId,
-            {
-                name: `${challenger.username}'s Verbal Memory Test`,
-                autoArchiveDuration: 60,
-                type: 11, // PUBLIC_THREAD
-            }
-        );
-
-        const opponentThread = await interaction.client.rest.channels.startThreadWithoutMessage(
-            channelId,
-            {
-                name: `${opponent.username}'s Verbal Memory Test`,
-                autoArchiveDuration: 60,
-                type: 11, // PUBLIC_THREAD
-            }
-        );
-
-        // Start tests for both users
-        testManager.start(challengerId);
-        testManager.start(opponentId);
-
-        const challengerTest = testManager.get(challengerId)!;
-        const opponentTest = testManager.get(opponentId)!;
-
-        const challengerWord = wordManager.chooseNextWord(challengerTest.seen, null);
-        const opponentWord = wordManager.chooseNextWord(opponentTest.seen, null);
-
-        challengerTest.currentWord = challengerWord;
-        opponentTest.currentWord = opponentWord;
-
-        // Send initial messages to threads
-        const challengerMessage = await interaction.client.rest.channels.createMessage(
-            challengerThread.id,
-            {
-                content: `<@${challengerId}>`,
-                embeds: [testEmbed(challenger, challengerTest)],
-                components: [testButtons],
-            }
-        );
-
-        const opponentMessage = await interaction.client.rest.channels.createMessage(
-            opponentThread.id,
-            {
-                content: `<@${opponentId}>`,
-                embeds: [testEmbed(opponent, opponentTest)],
-                components: [testButtons],
-            }
-        );
-
-        // Store duel information
-        const challengerMessageURL = `https://discord.com/channels/${interaction.guildID || "@me"}/${challengerThread.id}/${challengerMessage.id}`;
-        const opponentMessageURL = `https://discord.com/channels/${interaction.guildID || "@me"}/${opponentThread.id}/${opponentMessage.id}`;
-
-        const duel = duelManager.start(
-            challengerId, opponentId,
-            channelId, messageId,
-            challengerMessageURL, opponentMessageURL
-        );
-
-        // Update original message
-        await interaction.editParent({
-            content: "",
-            embeds: [duelEmbed(duel)],
-            components: [],
-        });
-
-    } catch (err) {
-        console.error("Failed to create duel:", err);
-        await interaction.createMessage({
-            content: "Failed to create duel threads!",
-            flags: 64,
-        });
+    if (action === "accept") {
+        await acceptDuel(interaction);
+    } else if (action === "decline") {
+        await declineDuel(interaction);
     }
 }
 
-async function handleDecline(interaction: ComponentInteraction) {
-    const content = interaction.message.content;
-    const opponentMatch = content.match(/<@(\d+)>, do you accept/);
+async function acceptDuel(interaction: ComponentInteraction) {
+    const [scope, action, challengerId, opponentId] = interaction.data.customID.split(":");     
+    const channel = interaction.channel as TextableChannel;
+    if (!channel) throw new Error();
     
-    if (!opponentMatch) return;
+    const challenger = await interaction.client.rest.users.get(challengerId);
+    const opponent = interaction.user;
 
-    const opponentId = opponentMatch[1];
+    // Create threads
+    const challengerThread = await interaction.client.rest.channels.startThreadWithoutMessage(
+        channel.id,
+        {
+            name: `${challenger.username}'s Verbal Memory Test`,
+            autoArchiveDuration: 60,
+            type: 11, // PUBLIC_THREAD
+        }
+    );
 
-    // Verify the person clicking is the opponent
-    if (interaction.user.id !== opponentId) {
-        await interaction.createMessage({
-            content: "Only the challenged user can decline this duel!",
-            flags: 64,
-        });
-        return;
-    }
+    const opponentThread = await interaction.client.rest.channels.startThreadWithoutMessage(
+        channel.id,
+        {
+            name: `${opponent.username}'s Verbal Memory Test`,
+            autoArchiveDuration: 60,
+            type: 11, // PUBLIC_THREAD
+        }
+    );
 
+    const challengerTest = testManager.start(challenger);
+    const opponentTest = testManager.start(opponent);
+
+    const challengerMessage = await interaction.client.rest.channels.createMessage(
+        challengerThread.id,
+        {
+            content: `<@${challengerTest.user.id}>`,
+            embeds: [testEmbed(challengerTest)],
+            components: [testButtons(challengerTest.user.id)],
+        }
+    );
+    challengerTest.messageURL = `https://discord.com/channels/${challengerMessage.guildID ?? "@me"}/${challengerMessage?.channel?.id}/${challengerMessage.id}`;
+
+    const opponentMessage = await interaction.client.rest.channels.createMessage(
+        opponentThread.id,
+        {
+            content: `<@${opponentTest.user.id}>`,
+            embeds: [testEmbed(opponentTest)],
+            components: [testButtons(opponentTest.user.id)],
+        }
+    );
+    opponentTest.messageURL = `https://discord.com/channels/${opponentMessage.guildID ?? "@me"}/${opponentMessage?.channel?.id}/${opponentMessage.id}`; 
+
+    const duel = duelManager.start(challengerTest, opponentTest);
+
+    await interaction.editParent({
+        content: "",
+        embeds: [duelEmbed(duel)],
+        components: [],
+    });
+
+    const message = await channel.getMessage(interaction.message.id);
+    duel.messageURL = `https://discord.com/channels/${message.guildID ?? "@me"}/${message.channel.id}/${message.id}`;
+}
+
+async function declineDuel(interaction: ComponentInteraction) {
     await interaction.editParent({
         content: `${interaction.user.mention} declined the challenge.`,
         components: [],

@@ -1,6 +1,5 @@
-import { type CommandInteraction, type User } from "oceanic.js";
-import { testManager } from "../managers/testManager.ts";
-import { wordManager } from "../managers/wordManager.ts";
+import type { User, CommandInteraction } from "oceanic.js";
+import { testManager } from "../classes/managers/testManager.ts";
 import { testEmbed } from "../components/embeds/testEmbed.ts";
 import { testButtons } from "../components/buttons/testButtons.ts";
 import { duelButtons } from "../components/buttons/duelButtons.ts";
@@ -55,42 +54,31 @@ export default {
 };
 
 async function startSolo(interaction: CommandInteraction, user: User) {
-    testManager.start(user.id);
+    const test = testManager.start(user);
 
-    const test = testManager.get(user.id)!;
-    const firstWord = wordManager.chooseNextWord(test.seen, null);
-    test.currentWord = firstWord;
-
-    await interaction.reply({
-        embeds: [testEmbed(user, test)],
-        components: [testButtons],
+    const res = await interaction.reply({
+        embeds: [testEmbed(test)],
+        components: [testButtons(test.user.id)],
     });
+
+    const message = await res.getMessage();
+    test.messageURL = `https://discord.com/channels/${message.guildID ?? "@me"}/${message?.channel?.id}/${message.id}`;
 }
 
-async function startDuel(
-    interaction: CommandInteraction,
-    challenger: User,
-    opponent: User
-) {
+async function startDuel(interaction: CommandInteraction, challenger: User, opponent: User) {
     await interaction.reply({
         content: `${opponent.mention}, do you accept ${challenger.mention}'s challenge?`,
-        components: [duelButtons],
+        components: [duelButtons(challenger.id, opponent.id)],
     });
 
-    // Set 1 minute timeout for acceptance
     setTimeout(async () => {
-        try {
-            const message = await interaction.getOriginal();
-            
-            // Check if buttons are still present (not yet accepted/declined)
-            if (message.components && message.components.length > 0) {
-                await interaction.editOriginal({
-                    content: `${opponent.mention} ignored the challenge 💀`,
-                    components: [],
-                });
-            }
-        } catch (err) {
-            console.error("Failed to expire duel challenge:", err);
+        const message = await interaction.getOriginal();
+        
+        if (message.components && message.components.length > 0) {
+            await interaction.editOriginal({
+                content: `${opponent.mention} ignored the challenge 💀`,
+                components: [],
+            });
         }
     }, 60000);
 }
