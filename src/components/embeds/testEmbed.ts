@@ -17,5 +17,6 @@ export function testEmbed(test: Test): EmbedOptions {
                 inline: true,
             },
         ],
+        color: 0x0099FF,
     };
 }

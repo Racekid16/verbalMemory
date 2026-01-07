@@ -10,9 +10,7 @@ const cmdPath = resolve(basePath, "../commands");
 // Store loaded commands
 const commands = new Map<string, Command>(); // key = command name
 
-/**
- * Load a single command file
- */
+// Load a single command file
 export async function loadCommand(client: Client, commandPath: string) {
     console.log(`Loading command from ${commandPath}...`);
 
@@ -41,9 +39,7 @@ export async function loadCommand(client: Client, commandPath: string) {
     }
 }
 
-/**
- * Load all commands from the commands directory
- */
+// Load all commands from the commands directory
 export async function loadAllCommands(client: Client) {
     const { glob } = await import("node:fs/promises");
 
@@ -57,16 +53,12 @@ export async function loadAllCommands(client: Client) {
     console.log(`Loaded ${commands.size} commands`);
 }
 
-/**
- * Get a command by name
- */
+// Get a command by name
 export function getCommand(name: string) {
     return commands.get(name);
 }
 
-/**
- * Get all commands
- */
+// Get all commands
 export function getAllCommands() {
     return commands;
 }

@@ -8,6 +8,9 @@ export class Test {
     currentWord: string = wordManager.chooseNextWord(this.seenWords, null);
     score: number = 0;
     lives: number = 3;
+    mainTimeout: NodeJS.Timeout | null = null;
+    warningTimeout: NodeJS.Timeout | null = null;
+    countdownInterval: NodeJS.Timeout | null = null;
 
     constructor(user: User) {
         this.user = user;
@@ -25,5 +28,20 @@ export class Test {
 
         this.seenWords.add(this.currentWord);
         this.currentWord = wordManager.chooseNextWord(this.seenWords, this.currentWord);
+    }
+
+    clearTimeouts() {
+        if (this.mainTimeout) {
+            clearTimeout(this.mainTimeout);
+            this.mainTimeout = null;
+        }
+        if (this.warningTimeout) {
+            clearTimeout(this.warningTimeout);
+            this.warningTimeout = null;
+        }
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
     }
 };

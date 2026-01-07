@@ -1,6 +1,7 @@
 import type { ComponentInteraction, TextableChannel } from "oceanic.js";
 import { duelManager } from "../classes/managers/duelManager.ts";
 import { testManager } from "../classes/managers/testManager.ts";
+import { startTestTimeout } from "./handleTestButton.ts";
 import { testEmbed } from "../components/embeds/testEmbed.ts";
 import { duelEmbed } from "../components/embeds/duelEmbed.ts";
 import { testButtons } from "../components/buttons/testButtons.ts";
@@ -70,6 +71,7 @@ async function acceptDuel(interaction: ComponentInteraction) {
         }
     );
     challengerTest.messageURL = `https://discord.com/channels/${challengerMessage.guildID ?? "@me"}/${challengerMessage?.channel?.id}/${challengerMessage.id}`;
+    startTestTimeout(challengerTest, interaction.client, challengerThread.id, challengerMessage.id);
 
     const opponentMessage = await interaction.client.rest.channels.createMessage(
         opponentThread.id,
@@ -80,6 +82,7 @@ async function acceptDuel(interaction: ComponentInteraction) {
         }
     );
     opponentTest.messageURL = `https://discord.com/channels/${opponentMessage.guildID ?? "@me"}/${opponentMessage?.channel?.id}/${opponentMessage.id}`; 
+    startTestTimeout(opponentTest, interaction.client, opponentThread.id, opponentMessage.id);
 
     const duel = duelManager.start(challengerTest, opponentTest);
 

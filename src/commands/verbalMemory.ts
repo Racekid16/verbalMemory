@@ -1,4 +1,5 @@
 import type { User, CommandInteraction } from "oceanic.js";
+import { startTestTimeout } from "../handlers/handleTestButton.ts";
 import { testManager } from "../classes/managers/testManager.ts";
 import { testEmbed } from "../components/embeds/testEmbed.ts";
 import { testButtons } from "../components/buttons/testButtons.ts";
@@ -63,6 +64,7 @@ async function startSolo(interaction: CommandInteraction, user: User) {
 
     const message = await res.getMessage();
     test.messageURL = `https://discord.com/channels/${message.guildID ?? "@me"}/${message?.channel?.id}/${message.id}`;
+    startTestTimeout(test, interaction.client, message.channelID, message.id);
 }
 
 async function startDuel(interaction: CommandInteraction, challenger: User, opponent: User) {

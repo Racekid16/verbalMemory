@@ -18,6 +18,7 @@ export class TestManager {
         const test = this.tests.get(userId);
         if (!test) return;
         if (test.lives <= 0) {
+            test.clearTimeouts();
             this.tests.delete(userId);
         }
     }
