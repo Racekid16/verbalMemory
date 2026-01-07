@@ -24,6 +24,8 @@ export default async function handleDuelButton(interaction: ComponentInteraction
         });
         return;
     }
+
+    await interaction.deferUpdate();
     
     if (action === "accept") {
         await acceptDuel(interaction);
@@ -33,7 +35,7 @@ export default async function handleDuelButton(interaction: ComponentInteraction
 }
 
 async function acceptDuel(interaction: ComponentInteraction) {
-    const [scope, action, challengerId, opponentId] = interaction.data.customID.split(":");     
+    const [scope, action, challengerId, opponentId] = interaction.data.customID.split(":");
     const channel = interaction.channel as TextableChannel;
     if (!channel) throw new Error();
     
@@ -86,7 +88,7 @@ async function acceptDuel(interaction: ComponentInteraction) {
 
     const duel = duelManager.start(challengerTest, opponentTest);
 
-    await interaction.editParent({
+    await interaction.editOriginal({
         content: "",
         embeds: [duelEmbed(duel)],
         components: [],
@@ -97,7 +99,7 @@ async function acceptDuel(interaction: ComponentInteraction) {
 }
 
 async function declineDuel(interaction: ComponentInteraction) {
-    await interaction.editParent({
+    await interaction.editOriginal({
         content: `${interaction.user.mention} declined the challenge.`,
         components: [],
     });

@@ -28,7 +28,10 @@ export function duelFinishedEmbed(duel: Duel): EmbedOptions {
                 value: `<@${duel.opponent.user.id}> - ${opponentScore} points`,
                 inline: true 
             },
-            { name: "Winner", value: winnerText }
+            {
+                name: "Winner",
+                value: winnerText
+            }
         ],
         color: 0x0099FF,
     }

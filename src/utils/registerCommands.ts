@@ -4,7 +4,6 @@ import type { Client } from "oceanic.js";
 import type { Command } from "../classes/command.ts";
 
 const basePath = dirname(fileURLToPath(import.meta.url));
-// Commands are in the same dist folder as the handler
 const cmdPath = resolve(basePath, "../commands");
 
 // Store loaded commands

@@ -8,9 +8,13 @@ export function testEmbed(test: Test): EmbedOptions {
             name: test.user.username,
             iconURL: test.user.avatarURL(),
         },
+        description: `# ${test.currentWord}`,
         fields: [
-            { name: "Word", value: `**${test.currentWord}**` },
-            { name: "Score", value: String(test.score), inline: true },
+            {
+                name: "Score",
+                value: String(test.score),
+                inline: true
+            },
             {
                 name: "Lives",
                 value: "❤️".repeat(test.lives),

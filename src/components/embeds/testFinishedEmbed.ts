@@ -9,7 +9,10 @@ export function testFinishedEmbed(test: Test): EmbedOptions {
             iconURL: test.user.avatarURL(),
         },
         fields: [
-            { name: "Score", value: String(test.score) }
+            {
+                name: "Score",
+                value: String(test.score)
+            }
         ],
         color: 0x0099FF, 
     };

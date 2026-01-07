@@ -11,7 +11,7 @@ First, create a Discord bot and obtain its token. It should have the following p
 - Manage Threads
 
 
-Then, install npm packages with:
+Then, install the required node dependencies with:
 
 ```
 npm install

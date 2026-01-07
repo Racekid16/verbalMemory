@@ -28,11 +28,13 @@ export default async function handleTestButton(interaction: ComponentInteraction
         return;
     }
 
+    await interaction.deferUpdate();
+
     test.clearTimeouts();
     test.submitAnswer(action);
 
     if (test.lives <= 0) {
-        await interaction.editParent({
+        await interaction.editOriginal({
             embeds: [testFinishedEmbed(test)],
             components: [],
         });
@@ -47,7 +49,7 @@ export default async function handleTestButton(interaction: ComponentInteraction
         }
 
     } else {    // livesRemaining > 0
-        await interaction.editParent({
+        await interaction.editOriginal({
             embeds: [testEmbed(test)],
             components: [testButtons(test.user.id)],
         });
@@ -74,9 +76,10 @@ export function startTestTimeout(test: Test, client: Client, channelId: string, 
 
         const elapsed = Date.now() - warningStartTime;
         const remaining = Math.max(1, Math.ceil(10 - elapsed / 1000));
+        const displayTime = remaining - 1;
         
-        if (remaining <= 10 && remaining > 0) {
-            await updateTestWithWarning(test, client, channelId, messageId, remaining);
+        if (remaining <= 10) {
+            await updateTestWithWarning(test, client, channelId, messageId, displayTime);
         }
     }, 1000);
 
