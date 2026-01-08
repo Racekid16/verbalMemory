@@ -36,15 +36,13 @@ export default async function handleDuelButton(interaction: ComponentInteraction
 
 async function acceptDuel(interaction: ComponentInteraction) {
     const [scope, action, challengerId, opponentId] = interaction.data.customID.split(":");
-    const channel = interaction.channel as TextableChannel;
-    if (!channel) throw new Error();
     
     const challenger = await interaction.client.rest.users.get(challengerId);
     const opponent = interaction.user;
 
     // Create threads
     const challengerThread = await interaction.client.rest.channels.startThreadWithoutMessage(
-        channel.id,
+        interaction.channelID,
         {
             name: `${challenger.username}'s Verbal Memory Test`,
             autoArchiveDuration: 60,
@@ -53,7 +51,7 @@ async function acceptDuel(interaction: ComponentInteraction) {
     );
 
     const opponentThread = await interaction.client.rest.channels.startThreadWithoutMessage(
-        channel.id,
+        interaction.channelID,
         {
             name: `${opponent.username}'s Verbal Memory Test`,
             autoArchiveDuration: 60,
@@ -73,7 +71,7 @@ async function acceptDuel(interaction: ComponentInteraction) {
         }
     );
     challengerTest.messageURL = `https://discord.com/channels/${challengerMessage.guildID ?? "@me"}/${challengerMessage?.channel?.id}/${challengerMessage.id}`;
-    startTestTimeout(challengerTest, interaction.client, challengerThread.id, challengerMessage.id);
+    startTestTimeout(challengerTest, interaction);
 
     const opponentMessage = await interaction.client.rest.channels.createMessage(
         opponentThread.id,
@@ -84,7 +82,7 @@ async function acceptDuel(interaction: ComponentInteraction) {
         }
     );
     opponentTest.messageURL = `https://discord.com/channels/${opponentMessage.guildID ?? "@me"}/${opponentMessage?.channel?.id}/${opponentMessage.id}`; 
-    startTestTimeout(opponentTest, interaction.client, opponentThread.id, opponentMessage.id);
+    startTestTimeout(opponentTest, interaction);
 
     const duel = duelManager.start(challengerTest, opponentTest);
 
@@ -94,8 +92,8 @@ async function acceptDuel(interaction: ComponentInteraction) {
         components: [],
     });
 
-    const message = await channel.getMessage(interaction.message.id);
-    duel.messageURL = `https://discord.com/channels/${message.guildID ?? "@me"}/${message.channel.id}/${message.id}`;
+    const message = await interaction.getOriginal();
+    duel.messageURL = `https://discord.com/channels/${message.guildID ?? "@me"}/${message.channelID}/${message.id}`;
 }
 
 async function declineDuel(interaction: ComponentInteraction) {

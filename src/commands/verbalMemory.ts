@@ -62,9 +62,9 @@ async function startSolo(interaction: CommandInteraction, user: User) {
         components: [testButtons(test.user.id)],
     });
 
-    const message = await res.getMessage();
-    test.messageURL = `https://discord.com/channels/${message.guildID ?? "@me"}/${message?.channel?.id}/${message.id}`;
-    startTestTimeout(test, interaction.client, message.channelID, message.id);
+    const message = await interaction.getOriginal();
+    test.messageURL = `https://discord.com/channels/${message.guildID ?? "@me"}/${message.channelID}/${message.id}`;
+    startTestTimeout(test, interaction);
 }
 
 async function startDuel(interaction: CommandInteraction, challenger: User, opponent: User) {

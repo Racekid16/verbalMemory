@@ -9,6 +9,10 @@ if (!process.env.TOKEN) {
     process.exit(1);
 }
 
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled promise rejection:', error);
+});
+
 const client = new Client({
     auth: `Bot ${process.env.TOKEN}`
 });

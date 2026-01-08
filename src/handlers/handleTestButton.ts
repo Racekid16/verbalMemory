@@ -1,4 +1,4 @@
-import type { Client, ComponentInteraction } from "oceanic.js";
+import type { CommandInteraction, ComponentInteraction } from "oceanic.js";
 import { testManager } from "../classes/managers/testManager.ts";
 import { duelManager } from "../classes/managers/duelManager.ts";
 import { testEmbed } from "../components/embeds/testEmbed.ts";
@@ -42,7 +42,7 @@ export default async function handleTestButton(interaction: ComponentInteraction
         const duel = duelManager.get(userId);
         if (duel) {
             if (duel.challenger.lives <= 0 && duel.opponent.lives <= 0) {
-                await endDuel(interaction.client, duel);
+                await endDuel(interaction, duel);
             }
         } else {
             await endSolo(test);
@@ -54,13 +54,12 @@ export default async function handleTestButton(interaction: ComponentInteraction
             components: [testButtons(test.user.id)],
         });
 
-        const message = interaction.message;
-        startTestTimeout(test, interaction.client, message.channelID, message.id);
+        startTestTimeout(test, interaction);
     }
 }
 
 // Start timeout tracking for a test
-export function startTestTimeout(test: Test, client: Client, channelId: string, messageId: string) {
+export function startTestTimeout(test: Test, interaction: CommandInteraction | ComponentInteraction) {
     test.clearTimeouts();
     let warningStartTime: number;
 
@@ -76,16 +75,16 @@ export function startTestTimeout(test: Test, client: Client, channelId: string, 
 
         const elapsed = Date.now() - warningStartTime;
         const remaining = Math.max(1, Math.ceil(10 - elapsed / 1000));
-        const displayTime = remaining - 1;
+        const displayRemaining = remaining - 1;
         
         if (remaining <= 10) {
-            await updateTestWithWarning(test, client, channelId, messageId, displayTime);
+            await updateTestWithWarning(test, interaction, displayRemaining);
         }
     }, 1000);
 
     const mainTimeout = setTimeout(async () => {
         clearInterval(countdownInterval);
-        await handleTestTimeout(test, client, channelId, messageId);
+        await handleTestTimeout(test, interaction);
     }, 30000);
 
     test.warningTimeout = warningTimeout;
@@ -94,24 +93,24 @@ export function startTestTimeout(test: Test, client: Client, channelId: string, 
 }
 
 // Update test embed with warning footer
-async function updateTestWithWarning(test: Test, client: Client, channelId: string, messageId: string, secondsRemaining: number) {
+async function updateTestWithWarning(test: Test, interaction: CommandInteraction | ComponentInteraction, secondsRemaining: number) {
     const embed = testEmbed(test);
     embed.footer = { text: `⏰ ${secondsRemaining} seconds remaining!` };
     
-    await client.rest.channels.editMessage(channelId, messageId, {
+    await interaction.editOriginal({
         embeds: [embed],
         components: [testButtons(test.user.id)],
     });
 }
 
 // Handle test timeout (30 seconds elapsed)
-async function handleTestTimeout(test: Test, client: Client, channelId: string, messageId: string) {
+async function handleTestTimeout(test: Test, interaction: CommandInteraction | ComponentInteraction) {
     test.clearTimeouts();
     // Submit wrong answer to lose a life and move to next word
     test.submitAnswer("wrong");
 
     if (test.lives <= 0) {
-        await client.rest.channels.editMessage(channelId, messageId, {
+        await interaction.editOriginal({
             embeds: [testFinishedEmbed(test)],
             components: [],
         });
@@ -119,18 +118,18 @@ async function handleTestTimeout(test: Test, client: Client, channelId: string, 
         const duel = duelManager.get(test.user.id);
         if (duel) {
             if (duel.challenger.lives <= 0 && duel.opponent.lives <= 0) {
-                await endDuel(client, duel);
+                await endDuel(interaction, duel);
             }
         } else {
             await endSolo(test);
         }
     } else {
-        await client.rest.channels.editMessage(channelId, messageId, {
+        await interaction.editOriginal({
             embeds: [testEmbed(test)],
             components: [testButtons(test.user.id)],
         });
 
-        startTestTimeout(test, client, channelId, messageId);
+        startTestTimeout(test, interaction);
     }
 }
 
@@ -138,13 +137,13 @@ async function endSolo(test: Test) {
     testManager.end(test.user.id);
 }
 
-async function endDuel(client: Client, duel: Duel) {
+async function endDuel(interaction: CommandInteraction | ComponentInteraction, duel: Duel) {
     const parts = duel?.messageURL?.split("/");
     if (!parts) throw new Error();
     const channelId = parts[parts.length - 2];
     const messageId = parts[parts.length - 1];
 
-    await client.rest.channels.editMessage(channelId, messageId, {
+    await interaction.client.rest.channels.editMessage(channelId, messageId, {
         embeds: [duelFinishedEmbed(duel)],
         components: [],
     });
@@ -152,13 +151,13 @@ async function endDuel(client: Client, duel: Duel) {
     if (duel.challenger.messageURL) {
         const threadId = extractThreadId(duel.challenger.messageURL);
         if (!threadId) throw new Error();
-        await client.rest.channels.delete(threadId);
+        await interaction.client.rest.channels.delete(threadId);
     }
 
     if (duel.opponent.messageURL) {
         const threadId = extractThreadId(duel.opponent.messageURL);
         if (!threadId) throw new Error();
-        await client.rest.channels.delete(threadId);
+        await interaction.client.rest.channels.delete(threadId);
     }
 
     duelManager.end(duel.challenger.user.id);
