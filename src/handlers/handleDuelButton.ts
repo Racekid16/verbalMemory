@@ -41,14 +41,23 @@ async function acceptDuel(interaction: ComponentInteraction) {
     const opponent = interaction.user;
 
     // Create threads
-    const challengerThread = await interaction.client.rest.channels.startThreadWithoutMessage(
-        interaction.channelID,
-        {
-            name: `${challenger.username}'s Verbal Memory Test`,
-            autoArchiveDuration: 60,
-            type: 11, // PUBLIC_THREAD
-        }
-    );
+    let challengerThread;
+    try {
+        challengerThread = await interaction.client.rest.channels.startThreadWithoutMessage(
+            interaction.channelID,
+            {
+                name: `${challenger.username}'s Verbal Memory Test`,
+                autoArchiveDuration: 60,
+                type: 11, // PUBLIC_THREAD
+            }
+        );
+    } catch (err) {
+        await interaction.reply({
+            content: "I don't have the necessary permissions to run duels 😭\nPlease ensure I have: Send Messages, Create Public Threads, Send Messages in Threads, and Manage Threads.",
+            flags: 64,
+        });
+        return;
+    }
 
     const opponentThread = await interaction.client.rest.channels.startThreadWithoutMessage(
         interaction.channelID,
