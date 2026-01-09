@@ -1,6 +1,7 @@
 # Verbal Memory
 
 Wordlist taken from https://humanbenchmark.com/tests/verbal-memory.
+Made using oceanic.js.
 
 ## Setup
 
