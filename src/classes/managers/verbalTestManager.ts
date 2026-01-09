@@ -1,16 +1,16 @@
 import { User } from "oceanic.js";
-import { Test } from "../test.ts";
+import { VerbalTest } from "../verbalTest.ts";
 
-export class TestManager {
-    private tests: Map<string, Test> = new Map(); // key = userId
+export class VerbalTestManager {
+    private tests: Map<string, VerbalTest> = new Map(); // key = userId
 
-    start(user: User): Test {
-        const test = new Test(user);
+    start(user: User): VerbalTest {
+        const test = new VerbalTest(user);
         this.tests.set(user.id, test);
         return test;
     }
     
-    get(userId: string): Test | null {
+    get(userId: string): VerbalTest | null {
         return this.tests.get(userId) || null;
     }
     
@@ -25,4 +25,4 @@ export class TestManager {
 }
 
 // singleton pattern
-export const testManager = new TestManager();
+export const verbalTestManager = new VerbalTestManager();

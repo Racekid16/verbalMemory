@@ -1,11 +1,11 @@
-import { wordManager } from "./managers/wordManager.ts";
 import type { User } from "oceanic.js";
+import { verbalWordManager } from "./managers/verbalWordManager.ts";
 
-export class Test {
+export class VerbalTest {
     user: User;
     messageURL: string | null = null;
     seenWords: Set<string> = new Set();
-    currentWord: string = wordManager.chooseNextWord(this.seenWords, null);
+    currentWord: string = verbalWordManager.chooseNextWord(this.seenWords, null);
     score: number = 0;
     lives: number = 3;
     mainTimeout: NodeJS.Timeout | null = null;
@@ -27,7 +27,7 @@ export class Test {
         }
 
         this.seenWords.add(this.currentWord);
-        this.currentWord = wordManager.chooseNextWord(this.seenWords, this.currentWord);
+        this.currentWord = verbalWordManager.chooseNextWord(this.seenWords, this.currentWord);
     }
 
     clearTimeouts() {

@@ -1,12 +1,12 @@
-import type { ComponentInteraction, TextableChannel } from "oceanic.js";
-import { duelManager } from "../classes/managers/duelManager.ts";
-import { testManager } from "../classes/managers/testManager.ts";
-import { startTestTimeout } from "./handleTestButton.ts";
-import { testEmbed } from "../components/embeds/testEmbed.ts";
-import { duelEmbed } from "../components/embeds/duelEmbed.ts";
-import { testButtons } from "../components/buttons/testButtons.ts";
+import type { ComponentInteraction } from "oceanic.js";
+import { verbalDuelManager } from "../classes/managers/verbalDuelManager.ts";
+import { verbalTestManager } from "../classes/managers/verbalTestManager.ts";
+import { startVerbalTestTimeout } from "./handleVerbalTestButtons.ts";
+import { verbalTestEmbed } from "../components/embeds/verbalTestEmbed.ts";
+import { verbalDuelEmbed } from "../components/embeds/verbalDuelEmbed.ts";
+import { verbalTestButtons } from "../components/buttons/verbalTestButtons.ts";
 
-export default async function handleDuelButton(interaction: ComponentInteraction) {
+export default async function handleVerbalDuelButton(interaction: ComponentInteraction) {
     const [scope, action, challengerId, opponentId] = interaction.data.customID.split(":");
 
     if (interaction.user.id !== opponentId) {
@@ -17,7 +17,7 @@ export default async function handleDuelButton(interaction: ComponentInteraction
         return;
     }
 
-    if (testManager.get(challengerId) || testManager.get(opponentId)) {
+    if (verbalTestManager.get(challengerId) || verbalTestManager.get(opponentId)) {
         await interaction.createMessage({
             content: "One of the users already has an ongoing test!",
             flags: 64,
@@ -28,13 +28,13 @@ export default async function handleDuelButton(interaction: ComponentInteraction
     await interaction.deferUpdate();
     
     if (action === "accept") {
-        await acceptDuel(interaction);
+        await acceptVerbalDuel(interaction);
     } else if (action === "decline") {
-        await declineDuel(interaction);
+        await declineVerbalDuel(interaction);
     }
 }
 
-async function acceptDuel(interaction: ComponentInteraction) {
+async function acceptVerbalDuel(interaction: ComponentInteraction) {
     const [scope, action, challengerId, opponentId] = interaction.data.customID.split(":");
     
     const challenger = await interaction.client.rest.users.get(challengerId);
@@ -68,36 +68,36 @@ async function acceptDuel(interaction: ComponentInteraction) {
         }
     );
 
-    const challengerTest = testManager.start(challenger);
-    const opponentTest = testManager.start(opponent);
+    const challengerTest = verbalTestManager.start(challenger);
+    const opponentTest = verbalTestManager.start(opponent);
 
     const challengerMessage = await interaction.client.rest.channels.createMessage(
         challengerThread.id,
         {
             content: `<@${challengerTest.user.id}>`,
-            embeds: [testEmbed(challengerTest)],
-            components: [testButtons(challengerTest.user.id)],
+            embeds: [verbalTestEmbed(challengerTest)],
+            components: [verbalTestButtons(challengerTest.user.id)],
         }
     );
     challengerTest.messageURL = `https://discord.com/channels/${challengerMessage.guildID ?? "@me"}/${challengerMessage?.channel?.id}/${challengerMessage.id}`;
-    startTestTimeout(challengerTest, interaction);
+    startVerbalTestTimeout(challengerTest, interaction);
 
     const opponentMessage = await interaction.client.rest.channels.createMessage(
         opponentThread.id,
         {
             content: `<@${opponentTest.user.id}>`,
-            embeds: [testEmbed(opponentTest)],
-            components: [testButtons(opponentTest.user.id)],
+            embeds: [verbalTestEmbed(opponentTest)],
+            components: [verbalTestButtons(opponentTest.user.id)],
         }
     );
     opponentTest.messageURL = `https://discord.com/channels/${opponentMessage.guildID ?? "@me"}/${opponentMessage?.channel?.id}/${opponentMessage.id}`; 
-    startTestTimeout(opponentTest, interaction);
+    startVerbalTestTimeout(opponentTest, interaction);
 
-    const duel = duelManager.start(challengerTest, opponentTest);
+    const duel = verbalDuelManager.start(challengerTest, opponentTest);
 
     await interaction.editOriginal({
         content: "",
-        embeds: [duelEmbed(duel)],
+        embeds: [verbalDuelEmbed(duel)],
         components: [],
     });
 
@@ -105,7 +105,7 @@ async function acceptDuel(interaction: ComponentInteraction) {
     duel.messageURL = `https://discord.com/channels/${message.guildID ?? "@me"}/${message.channelID}/${message.id}`;
 }
 
-async function declineDuel(interaction: ComponentInteraction) {
+async function declineVerbalDuel(interaction: ComponentInteraction) {
     await interaction.editOriginal({
         content: `${interaction.user.mention} declined the challenge.`,
         components: [],

@@ -1,8 +1,8 @@
 import "dotenv/config";
 import { Client } from "oceanic.js";
 import { loadAllCommands, getCommand } from "./utils/registerCommands.ts";
-import handleTestButton from "./handlers/handleTestButton.ts";
-import handleDuelButton from "./handlers/handleDuelButton.ts";
+import handleTestButton from "./handlers/handleVerbalTestButtons.ts";
+import handleDuelButton from "./handlers/handleVerbalDuelButtons.ts";
 
 if (!process.env.TOKEN) {
     console.error("No token provided!");
@@ -37,12 +37,12 @@ client.on("interactionCreate", async (interaction) => {
         if (interaction.isComponentInteraction()) {
             const scope = interaction.data.customID.split(":")[0];
 
-            if (scope == "test") {
+            if (scope == "verbalTest") {
                 await handleTestButton(interaction);
                 return;
             }
 
-            if (scope == "duel") {
+            if (scope == "verbalDuel") {
                 await handleDuelButton(interaction);
                 return;
             }

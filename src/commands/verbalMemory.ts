@@ -1,9 +1,9 @@
 import type { User, CommandInteraction } from "oceanic.js";
-import { startTestTimeout } from "../handlers/handleTestButton.ts";
-import { testManager } from "../classes/managers/testManager.ts";
-import { testEmbed } from "../components/embeds/testEmbed.ts";
-import { testButtons } from "../components/buttons/testButtons.ts";
-import { duelButtons } from "../components/buttons/duelButtons.ts";
+import { startVerbalTestTimeout } from "../handlers/handleVerbalTestButtons.ts";
+import { verbalTestManager } from "../classes/managers/verbalTestManager.ts";
+import { verbalTestEmbed } from "../components/embeds/verbalTestEmbed.ts";
+import { verbalTestButtons } from "../components/buttons/verbalTestButtons.ts";
+import { verbalDuelButtons } from "../components/buttons/verbalDuelButtons.ts";
 
 export default {
     name: "verbal-memory",
@@ -19,7 +19,7 @@ export default {
     ],
 
     async execute(interaction: CommandInteraction) {
-        if (testManager.get(interaction.user.id)) {
+        if (verbalTestManager.get(interaction.user.id)) {
             await interaction.createMessage({
                 content: "You already have an ongoing test!",
                 flags: 64,
@@ -30,7 +30,7 @@ export default {
         const opponent = interaction.data.options?.getUser("user");
 
         if (!opponent) {
-            await startSolo(interaction, interaction.user);
+            await startVerbalSolo(interaction, interaction.user);
             return;
         }
 
@@ -42,7 +42,7 @@ export default {
             return;
         }
 
-        if (testManager.get(opponent.id)) {
+        if (verbalTestManager.get(opponent.id)) {
             await interaction.createMessage({
                 content: "The challenged user already has an ongoing test!",
                 flags: 64,
@@ -50,27 +50,27 @@ export default {
             return;
         }
 
-        await startDuel(interaction, interaction.user, opponent);
+        await startVerbalDuel(interaction, interaction.user, opponent);
     },
 };
 
-async function startSolo(interaction: CommandInteraction, user: User) {
-    const test = testManager.start(user);
+async function startVerbalSolo(interaction: CommandInteraction, user: User) {
+    const test = verbalTestManager.start(user);
 
     const res = await interaction.reply({
-        embeds: [testEmbed(test)],
-        components: [testButtons(test.user.id)],
+        embeds: [verbalTestEmbed(test)],
+        components: [verbalTestButtons(test.user.id)],
     });
 
     const message = await interaction.getOriginal();
     test.messageURL = `https://discord.com/channels/${message.guildID ?? "@me"}/${message.channelID}/${message.id}`;
-    startTestTimeout(test, interaction);
+    startVerbalTestTimeout(test, interaction);
 }
 
-async function startDuel(interaction: CommandInteraction, challenger: User, opponent: User) {
+async function startVerbalDuel(interaction: CommandInteraction, challenger: User, opponent: User) {
     await interaction.reply({
         content: `${opponent.mention}, do you accept ${challenger.mention}'s challenge?`,
-        components: [duelButtons(challenger.id, opponent.id)],
+        components: [verbalDuelButtons(challenger.id, opponent.id)],
     });
 
     setTimeout(async () => {

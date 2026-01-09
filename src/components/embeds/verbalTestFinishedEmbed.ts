@@ -1,7 +1,7 @@
 import type { EmbedOptions } from "oceanic.js";
-import { Test } from "../../classes/test.ts";
+import { VerbalTest } from "../../classes/verbalTest.ts";
 
-export function testFinishedEmbed(test: Test): EmbedOptions {
+export function verbalTestFinishedEmbed(test: VerbalTest): EmbedOptions {
     return {
         title: "Verbal Memory Test - Finished",
         author: {

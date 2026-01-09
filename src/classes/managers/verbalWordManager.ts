@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 const MAX_P = 0.7;
 const SCALE = 15 / MAX_P;
 
-export class WordManager {
+export class VerbalWordManager {
     private words: string[];
     
     constructor(wordsFilePath: string) {
@@ -60,4 +60,4 @@ export class WordManager {
 }
 
 // singleton pattern
-export const wordManager = new WordManager("assets/words.txt");
+export const verbalWordManager = new VerbalWordManager("assets/words.txt");

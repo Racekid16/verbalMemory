@@ -1,7 +1,7 @@
 import type { EmbedOptions } from "oceanic.js";
-import type { Duel } from "../../classes/duel.ts";
+import { VerbalDuel } from "../../classes/verbalDuel.ts";
 
-export function duelEmbed(duel: Duel): EmbedOptions {
+export function verbalDuelEmbed(duel: VerbalDuel): EmbedOptions {
     return {
         title: "Verbal Memory Duel - In Progress ⌛",
         fields: [

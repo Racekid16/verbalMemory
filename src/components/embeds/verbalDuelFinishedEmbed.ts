@@ -1,7 +1,7 @@
 import type { EmbedOptions } from "oceanic.js";
-import type { Duel } from "../../classes/duel.ts";
+import { VerbalDuel } from "../../classes/verbalDuel.ts";
 
-export function duelFinishedEmbed(duel: Duel): EmbedOptions {
+export function verbalDuelFinishedEmbed(duel: VerbalDuel): EmbedOptions {
     const challengerScore = duel.challenger.score;
     const opponentScore = duel.opponent.score;
 

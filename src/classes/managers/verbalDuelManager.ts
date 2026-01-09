@@ -1,12 +1,12 @@
-import { Duel } from "../duel.ts";
-import { Test } from "../test.ts";
+import { VerbalDuel } from "../verbalDuel.ts";
+import { VerbalTest } from "../verbalTest.ts";
 
-export class DuelManager {
+export class VerbalDuelManager {
     private userIdToDuelKey: Map<string, string> = new Map();  // key = userId, value = key for corresponding duel in duels
-    private duels: Map<string, Duel> = new Map(); // key = messageId
+    private duels: Map<string, VerbalDuel> = new Map(); // key = messageId
 
-    start(challengerTest: Test, opponentTest: Test): Duel {
-        const duel = new Duel(challengerTest, opponentTest);
+    start(challengerTest: VerbalTest, opponentTest: VerbalTest): VerbalDuel {
+        const duel = new VerbalDuel(challengerTest, opponentTest);
         const challengerId = challengerTest.user.id;
         const opponentId = opponentTest.user.id;
         const duelKey: string = `${challengerId}|${opponentId}`;
@@ -16,7 +16,7 @@ export class DuelManager {
         return duel;
     }
 
-    get(userId: string): Duel | null {
+    get(userId: string): VerbalDuel | null {
         const duelKey = this.userIdToDuelKey.get(userId);
         if (!duelKey) return null;
         return this.duels.get(duelKey) || null;
@@ -37,4 +37,4 @@ export class DuelManager {
 }
 
 // singleton pattern
-export const duelManager = new DuelManager();
+export const verbalDuelManager = new VerbalDuelManager();
