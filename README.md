@@ -28,5 +28,5 @@ TOKEN=your_bot_token_here
 Run with:
 
 ```
-npm run build && npm start
+npm start
 ```
