@@ -1,41 +1,45 @@
-import type { ComponentInteraction } from "oceanic.js";
+import { Constants, type ComponentInteraction } from "oceanic.js";
 import { verbalDuelManager } from "../classes/managers/verbalDuelManager.ts";
 import { verbalTestManager } from "../classes/managers/verbalTestManager.ts";
-import { startVerbalTestTimeout } from "./handleVerbalTestButtons.ts";
+import { startVerbalTestTimeout } from "./verbalTestButton.ts";
 import { verbalTestEmbed } from "../components/embeds/verbalTestEmbed.ts";
 import { verbalDuelEmbed } from "../components/embeds/verbalDuelEmbed.ts";
 import { verbalTestButtons } from "../components/buttons/verbalTestButtons.ts";
 
-export default async function handleVerbalDuelButton(interaction: ComponentInteraction) {
-    const [scope, action, challengerId, opponentId] = interaction.data.customID.split(":");
+export default {
+    name: "verbal-duel-button",
 
-    if (interaction.user.id !== opponentId) {
-        await interaction.createMessage({
-            content: "You are not the challenged user!",
-            flags: 64,
-        });
-        return;
-    }
+    async execute(interaction: ComponentInteraction) {
+        const [component, action, challengerId, opponentId] = interaction.data.customID.split(":");
 
-    if (verbalTestManager.get(challengerId) || verbalTestManager.get(opponentId)) {
-        await interaction.createMessage({
-            content: "One of the users already has an ongoing test!",
-            flags: 64,
-        });
-        return;
-    }
+        if (interaction.user.id !== opponentId) {
+            await interaction.createMessage({
+                content: "You are not the challenged user!",
+                flags: 64,
+            });
+            return;
+        }
 
-    await interaction.deferUpdate();
-    
-    if (action === "accept") {
-        await acceptVerbalDuel(interaction);
-    } else if (action === "decline") {
-        await declineVerbalDuel(interaction);
+        if (verbalTestManager.get(challengerId) || verbalTestManager.get(opponentId)) {
+            await interaction.createMessage({
+                content: "One of the users already has an ongoing test!",
+                flags: 64,
+            });
+            return;
+        }
+
+        await interaction.deferUpdate();
+        
+        if (action === "accept") {
+            await acceptVerbalDuel(interaction);
+        } else if (action === "decline") {
+            await declineVerbalDuel(interaction);
+        }
     }
 }
 
 async function acceptVerbalDuel(interaction: ComponentInteraction) {
-    const [scope, action, challengerId, opponentId] = interaction.data.customID.split(":");
+    const [component, action, challengerId, opponentId] = interaction.data.customID.split(":");
     
     const challenger = await interaction.client.rest.users.get(challengerId);
     const opponent = interaction.user;
@@ -46,9 +50,9 @@ async function acceptVerbalDuel(interaction: ComponentInteraction) {
         challengerThread = await interaction.client.rest.channels.startThreadWithoutMessage(
             interaction.channelID,
             {
+                type: Constants.ChannelTypes.PUBLIC_THREAD,
                 name: `${challenger.username}'s Verbal Memory Test`,
                 autoArchiveDuration: 60,
-                type: 11, // PUBLIC_THREAD
             }
         );
     } catch (err) {
@@ -62,9 +66,9 @@ async function acceptVerbalDuel(interaction: ComponentInteraction) {
     const opponentThread = await interaction.client.rest.channels.startThreadWithoutMessage(
         interaction.channelID,
         {
+            type: Constants.ChannelTypes.PUBLIC_THREAD,
             name: `${opponent.username}'s Verbal Memory Test`,
             autoArchiveDuration: 60,
-            type: 11, // PUBLIC_THREAD
         }
     );
 

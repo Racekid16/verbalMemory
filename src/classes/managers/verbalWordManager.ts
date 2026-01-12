@@ -26,12 +26,12 @@ export class VerbalWordManager {
         let word: string;
         
         // Choose seen or new based on probability
-        if (Math.random() < pSeen && seenCount > 0) {
+        if (Math.random() < pSeen) {
             word = this.getRandomSeen(seen);
         } else {
             const pSimilar = Math.min(MAX_SIMILAR_P, seenCount / SIMILAR_SCALE);
 
-            if (Math.random() < pSimilar && seenCount > 0) {
+            if (Math.random() < pSimilar) {
                 word = this.getSimilarNew(seen);
             } else {
                 word = this.getRandomNew(seen);
@@ -180,4 +180,4 @@ export class VerbalWordManager {
 }
 
 // singleton pattern
-export const verbalWordManager = new VerbalWordManager("assets/words.txt");
+export const verbalWordManager = new VerbalWordManager("assets/verbalWords.txt");

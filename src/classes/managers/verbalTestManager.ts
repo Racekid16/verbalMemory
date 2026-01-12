@@ -1,4 +1,4 @@
-import { User } from "oceanic.js";
+import type { User } from "oceanic.js";
 import { VerbalTest } from "../verbalTest.ts";
 
 export class VerbalTestManager {

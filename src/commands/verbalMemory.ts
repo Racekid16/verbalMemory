@@ -1,5 +1,5 @@
-import type { User, CommandInteraction } from "oceanic.js";
-import { startVerbalTestTimeout } from "../handlers/handleVerbalTestButtons.ts";
+import { Constants, type User, type CommandInteraction } from "oceanic.js";
+import { startVerbalTestTimeout } from "../componentHandlers/verbalTestButton.ts";
 import { verbalTestManager } from "../classes/managers/verbalTestManager.ts";
 import { verbalTestEmbed } from "../components/embeds/verbalTestEmbed.ts";
 import { verbalTestButtons } from "../components/buttons/verbalTestButtons.ts";
@@ -11,7 +11,7 @@ export default {
     slash: true,
     options: [
         {
-            type: 6, // USER
+            type: Constants.ApplicationCommandOptionTypes.USER,
             name: "user",
             description: "Challenge another user",
             required: false,
@@ -57,7 +57,7 @@ export default {
 async function startVerbalSolo(interaction: CommandInteraction, user: User) {
     const test = verbalTestManager.start(user);
 
-    const res = await interaction.reply({
+    await interaction.reply({
         embeds: [verbalTestEmbed(test)],
         components: [verbalTestButtons(test.user.id)],
     });

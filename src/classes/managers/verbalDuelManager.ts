@@ -3,7 +3,7 @@ import { VerbalTest } from "../verbalTest.ts";
 
 export class VerbalDuelManager {
     private userIdToDuelKey: Map<string, string> = new Map();  // key = userId, value = key for corresponding duel in duels
-    private duels: Map<string, VerbalDuel> = new Map(); // key = messageId
+    private duels: Map<string, VerbalDuel> = new Map(); // key = duelKey (from userIdToDuelKey)
 
     start(challengerTest: VerbalTest, opponentTest: VerbalTest): VerbalDuel {
         const duel = new VerbalDuel(challengerTest, opponentTest);

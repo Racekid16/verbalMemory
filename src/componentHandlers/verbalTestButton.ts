@@ -1,4 +1,4 @@
-import { CommandInteraction, type ComponentInteraction } from "oceanic.js";
+import type { CommandInteraction, ComponentInteraction } from "oceanic.js";
 import { verbalTestManager } from "../classes/managers/verbalTestManager.ts";
 import { verbalDuelManager } from "../classes/managers/verbalDuelManager.ts";
 import { VerbalDuel } from "../classes/verbalDuel.ts";
@@ -8,53 +8,57 @@ import { verbalDuelFinishedEmbed } from "../components/embeds/verbalDuelFinished
 import { verbalTestFinishedEmbed } from "../components/embeds/verbalTestFinishedEmbed.ts";
 import { verbalTestButtons } from "../components/buttons/verbalTestButtons.ts";
 
-export default async function handleVerbalTestButton(interaction: ComponentInteraction) {
-    const [scope, action, userId] = interaction.data.customID.split(":");
+export default {
+    name: "verbal-test-button",
 
-    if (interaction.user.id !== userId) {
-        await interaction.createMessage({
-            content: "This is not your test!",
-            flags: 64,
-        });
-        return;
-    }
+    async execute(interaction: ComponentInteraction) {
+        const [component, action, userId] = interaction.data.customID.split(":");
 
-    const test = verbalTestManager.get(userId);
-    if (!test) {
-        await interaction.createMessage({
-            content: "This test has expired or already ended.",
-            flags: 64,
-        });
-        return;
-    }
-
-    await interaction.deferUpdate();
-
-    test.clearTimeouts();
-    test.submitAnswer(action);
-
-    if (test.lives <= 0) {
-        await interaction.editOriginal({
-            embeds: [verbalTestFinishedEmbed(test)],
-            components: [],
-        });
-
-        const duel = verbalDuelManager.get(userId);
-        if (duel) {
-            if (duel.challenger.lives <= 0 && duel.opponent.lives <= 0) {
-                await endVerbalDuel(interaction, duel);
-            }
-        } else {
-            await endVerbalSolo(test);
+        if (interaction.user.id !== userId) {
+            await interaction.createMessage({
+                content: "This is not your test!",
+                flags: 64,
+            });
+            return;
         }
 
-    } else {    // test.lives > 0
-        await interaction.editOriginal({
-            embeds: [verbalTestEmbed(test)],
-            components: [verbalTestButtons(test.user.id)],
-        });
+        const test = verbalTestManager.get(userId);
+        if (!test) {
+            await interaction.createMessage({
+                content: "This test has expired or already ended.",
+                flags: 64,
+            });
+            return;
+        }
 
-        startVerbalTestTimeout(test, interaction);
+        await interaction.deferUpdate();
+
+        test.clearTimeouts();
+        test.submitAnswer(action);
+
+        if (test.lives <= 0) {
+            await interaction.editOriginal({
+                embeds: [verbalTestFinishedEmbed(test)],
+                components: [],
+            });
+
+            const duel = verbalDuelManager.get(userId);
+            if (duel) {
+                if (duel.challenger.lives <= 0 && duel.opponent.lives <= 0) {
+                    await endVerbalDuel(interaction, duel);
+                }
+            } else {
+                await endVerbalSolo(test);
+            }
+
+        } else {    // test.lives > 0
+            await interaction.editOriginal({
+                embeds: [verbalTestEmbed(test)],
+                components: [verbalTestButtons(test.user.id)],
+            });
+
+            startVerbalTestTimeout(test, interaction);
+        }
     }
 }
 

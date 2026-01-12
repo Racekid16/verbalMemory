@@ -1,6 +1,6 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Client } from "oceanic.js";
+import { Constants, type Client } from "oceanic.js";
 import type { Command } from "../classes/command.ts";
 
 const basePath = dirname(fileURLToPath(import.meta.url));
@@ -10,8 +10,8 @@ const cmdPath = resolve(basePath, "../commands");
 const commands = new Map<string, Command>(); // key = command name
 
 // Load a single command file
-export async function loadCommand(client: Client, commandPath: string) {
-    console.log(`Loading command from ${commandPath}...`);
+export async function loadCommand(commandPath: string) {
+    // console.log(`Loading command from ${commandPath}...`);
 
     try {
         const { default: command } = await import(commandPath);
@@ -22,34 +22,42 @@ export async function loadCommand(client: Client, commandPath: string) {
         }
 
         commands.set(command.name, command);
-        console.log(`Loaded command: ${command.name}`);
+        // console.log(`Loaded command: ${command.name}`);
 
-        // Register slash command if enabled
-        if (command.slash && client.application) {
-            await client.application.createGlobalCommand({
-                type: 1, // CHAT_INPUT
-                name: command.name,
-                description: command.description || "No description provided",
-                options: command.options || []
-            });
-        }
     } catch (err) {
         console.error(`Failed to load command at ${commandPath}:`, err);
     }
 }
 
 // Load all commands from the commands directory
-export async function loadAllCommands(client: Client) {
+export async function loadAndRegisterAllCommands(client: Client) {
     const { glob } = await import("node:fs/promises");
 
-    console.log("Loading commands...");
+    // console.log("Loading commands...");
 
     // Load .js files (compiled TypeScript)
     for await (const file of glob(resolve(cmdPath, "*.js"))) {
-        await loadCommand(client, file);
+        await loadCommand(file);
     }
 
-    console.log(`Loaded ${commands.size} commands`);
+    // console.log(`Loaded ${commands.size} commands`);
+
+    const slashCommands = Array.from(commands.values())
+        .filter(cmd => cmd.slash)
+        .map(cmd => ({
+            type: Constants.ApplicationCommandTypes.CHAT_INPUT as const,
+            name: cmd.name,
+            description: cmd.description || "No description provided",
+            options: cmd.options || []
+        }));
+    
+    if (slashCommands.length > 0 && client.application) {
+        await client.rest.applications.bulkEditGlobalCommands(
+            client.application.id,
+            slashCommands
+        );
+        console.log(`Registered ${slashCommands.length} commands`);
+    }
 }
 
 // Get a command by name
